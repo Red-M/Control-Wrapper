@@ -7,6 +7,15 @@ import socket
 import threading
 import SocketServer
 
+global process_exec
+process_exec = "/path/to/executable/here"
+global greprexp
+greprexp = 'ps aux | grep "java -D"'
+
+# edit the varibles above for the process path you are trying to run and 
+# the grep command will need to be edited to match the process you are looking for
+# just replace the "java -D" section with what will match for your process
+
 def regexmatch2(text,regex):
     match = regex.match(text)
     if not match:
@@ -19,7 +28,7 @@ def startzom():
     isonline = checkzom()
     if isonline=="OFF-LINE":
         print("STARTED")
-        p = subprocess.Popen("/home/redm/Steam/SteamApps/common/ProjectZomboid/projectzomboid-dedi-server.sh")
+        p = subprocess.Popen()
         while p.wait():
             #return("DONE")
             pass
@@ -28,7 +37,7 @@ global killzom
 def killzom():
     isonline = checkzom()
     if isonline=="ON-LINE":
-        out = subprocess.check_output("ps aux | grep \"java -D\"", shell=True)
+        out = subprocess.check_output(greprexp, shell=True)
         pid = regexmatch2(out,re.compile(r'.+?     (.+?) .*'))
         subprocess.call(["kill", pid])
         print("KILLED")
@@ -38,7 +47,7 @@ def killzom():
     
 global checkzom
 def checkzom():
-    out = subprocess.check_output('ps aux | grep "java -D"', shell=True)
+    out = subprocess.check_output(greprexp, shell=True)
     pidcount = len(out.split("\n"))
     if pidcount==3:
         return("OFF-LINE")
