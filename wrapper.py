@@ -28,7 +28,7 @@ def startzom():
     isonline = checkzom()
     if isonline=="OFF-LINE":
         print("STARTED")
-        p = subprocess.Popen()
+        p = subprocess.Popen(process_exec.split(" "))
         while p.wait():
             #return("DONE")
             pass
