@@ -40,6 +40,7 @@ def killzom():
         out = subprocess.check_output(greprexp, shell=True)
         pid = regexmatch2(out,re.compile(r'.+?     (.+?) .*'))
         subprocess.call(["kill", pid])
+        print(pid)
         print("KILLED")
         return("KILLED")
     else:
@@ -77,6 +78,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     i = 0
+    server = None
     try:
         while True:
             if i==0:
@@ -86,8 +88,9 @@ if __name__ == "__main__":
                 server_thread.daemon = True
                 server_thread.start()
                 i=+1
-    finally:
-        server.shutdown()
-        print("SHUTDOWN")
+    except Exception,e:
+        if not server==None:
+            server.shutdown()
+            print("SHUTDOWN")
 
     
