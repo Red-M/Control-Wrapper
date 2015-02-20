@@ -2,7 +2,6 @@
 import subprocess
 import sys
 import time
-import re
 import socket
 import threading
 import SocketServer
@@ -16,45 +15,41 @@ greprexp = 'ps aux | grep "java -D"'
 # the grep command will need to be edited to match the process you are looking for
 # just replace the "java -D" section with what will match for your process
 
-def regexmatch2(text,regex):
-    match = regex.match(text)
-    if not match:
-        return("")
-    (matcho,) = match.groups()
-    return matcho
-
 global startzom
 def startzom():
+    global proc
     isonline = checkzom()
     if isonline=="OFF-LINE":
-        print("STARTED")
-        p = subprocess.Popen(process_exec.split(" "))
-        while p.wait():
-            #return("DONE")
-            pass
+        if proc==None:
+            proc = subprocess.Popen(process_exec.split(" "))
+            print("STARTED")
+            try:
+                while proc.wait():
+                    #return("DONE")
+                    pass
+            except Exception,e:
+                pass
         
 global killzom
 def killzom():
+    global proc
     isonline = checkzom()
     if isonline=="ON-LINE":
-        out = subprocess.check_output(greprexp, shell=True)
-        pid = regexmatch2(out,re.compile(r'.+?     (.+?) .*'))
-        subprocess.call(["kill", pid])
-        print(pid)
-        print("KILLED")
-        return("KILLED")
+        if not proc==None:
+            proc.kill()
+            print("KILLED")
+            proc = None
+            return("KILLED")
     else:
         return("NO SERVER")
     
 global checkzom
 def checkzom():
-    out = subprocess.check_output(greprexp, shell=True)
-    pidcount = len(out.split("\n"))
-    if pidcount==3:
+    if proc==None:
         return("OFF-LINE")
-    elif pidcount==4:
+    else:
         return("ON-LINE")
-    return(len(out.split("\n")))
+    return("None")
     
     
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
@@ -78,6 +73,7 @@ class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
 
 if __name__ == "__main__":
     i = 0
+    proc = None
     server = None
     try:
         while True:
@@ -87,10 +83,13 @@ if __name__ == "__main__":
                 server_thread = threading.Thread(target=server.serve_forever)
                 server_thread.daemon = True
                 server_thread.start()
+                print("Started the process daemon.")
                 i=+1
     except Exception,e:
         if not server==None:
             server.shutdown()
             print("SHUTDOWN")
+        else:
+            print("Failed to start.\n"+str(e))
 
     
