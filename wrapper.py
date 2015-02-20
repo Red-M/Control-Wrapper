@@ -93,6 +93,7 @@ if __name__ == "__main__":
     except Exception,e:
         if not proc==None:
             proc.kill()
+            print("Killed sub process")
         if not server==None:
             server.shutdown()
             print("SHUTDOWN")
