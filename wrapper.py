@@ -63,6 +63,11 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         if data=="stop":
             response = killzom()
             self.request.sendall(response)
+        if data=="restart":
+            killzom()
+            response = "OK"
+            self.request.sendall(response)
+            startzom()
         if data=="check":
             response = checkzom()
             self.request.sendall(response)
