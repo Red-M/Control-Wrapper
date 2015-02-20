@@ -91,6 +91,8 @@ if __name__ == "__main__":
                 print("Started the process daemon.")
                 i=+1
     except Exception,e:
+        if not proc==None:
+            proc.kill()
         if not server==None:
             server.shutdown()
             print("SHUTDOWN")
