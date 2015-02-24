@@ -5,51 +5,48 @@ import time
 import socket
 import threading
 import SocketServer
+import traceback
 
-global process_exec
 process_exec = "/path/to/executable/here"
-global greprexp
-greprexp = 'ps aux | grep "java -D"'
 
-# edit the varibles above for the process path you are trying to run and 
-# the grep command will need to be edited to match the process you are looking for
-# just replace the "java -D" section with what will match for your process
+class process_control(object):
 
-global startzom
-def startzom():
-    global proc
-    isonline = checkzom()
-    if isonline=="OFF-LINE":
-        if proc==None:
-            proc = subprocess.Popen(process_exec.split(" "))
-            print("STARTED")
-            try:
-                while proc.wait():
-                    #return("DONE")
-                    pass
-            except Exception,e:
-                pass
-        
-global killzom
-def killzom():
-    global proc
-    isonline = checkzom()
-    if isonline=="ON-LINE":
-        if not proc==None:
-            proc.kill()
-            print("KILLED")
-            proc = None
-            return("KILLED")
-    else:
-        return("NO SERVER")
+    def __init__(self,process_exec):
+        self.proc = None
+        self.process_exec = process_exec
     
-global checkzom
-def checkzom():
-    if proc==None:
-        return("OFF-LINE")
-    else:
-        return("ON-LINE")
-    return("None")
+    def startzom(self):
+        isonline = self.checkzom()
+        if isonline=="OFF-LINE":
+            if self.proc==None:
+                self.proc = subprocess.Popen(self.process_exec.split(" "))
+                print("STARTED")
+                try:
+                    while self.proc.wait():
+                        #return("DONE")
+                        pass
+                except Exception,e:
+                    pass
+    
+    
+    def killzom(self):
+        isonline = self.checkzom()
+        if isonline=="ON-LINE":
+            if not self.proc==None:
+                self.proc.kill()
+                print("KILLED")
+                self.proc = None
+                return("KILLED")
+        else:
+            return("NO SERVER")
+    
+    
+    def checkzom(self):
+        if self.proc==None:
+            return("OFF-LINE")
+        else:
+            return("ON-LINE")
+        return("None")
     
     
 class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
@@ -59,31 +56,34 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         if data=="start":
             response = "OK"
             self.request.sendall(response)
-            startzom()
+            self.server.child_process.startzom()
         if data=="stop":
-            response = killzom()
+            response = self.server.child_process.killzom()
             self.request.sendall(response)
         if data=="restart":
-            killzom()
+            self.server.child_process.killzom()
             response = "OK"
             self.request.sendall(response)
-            startzom()
+            self.server.child_process.startzom()
         if data=="check":
-            response = checkzom()
+            response = self.server.child_process.checkzom()
             self.request.sendall(response)
 
 class ThreadedTCPServer(SocketServer.ThreadingMixIn, SocketServer.TCPServer):
-    pass
+    def __init__(self, child_process, *args, **kwargs):
+        self.child_process = child_process
+        SocketServer.TCPServer.__init__(self, *args, **kwargs)
 
 
-if __name__ == "__main__":
+def main(process_exec):
     i = 0
     proc = None
     server = None
     try:
         while True:
             if i==0:
-                server = ThreadedTCPServer(("0.0.0.0", 16260), ThreadedTCPRequestHandler)
+                child_process = process_control(process_exec)
+                server = ThreadedTCPServer(child_process, ("0.0.0.0", 16260), ThreadedTCPRequestHandler)
                 ip, port = server.server_address
                 server_thread = threading.Thread(target=server.serve_forever)
                 server_thread.daemon = True
@@ -91,13 +91,17 @@ if __name__ == "__main__":
                 print("Started the process daemon.")
                 i=+1
     except Exception,e:
+        type_, value_, traceback_ = sys.exc_info()
+        ex = traceback.format_exception(type_, value_, traceback_)
+        trace = ""
+        for data in ex:
+            trace = str(trace+data)
         if not proc==None:
             proc.kill()
-            print("Killed sub process")
         if not server==None:
             server.shutdown()
             print("SHUTDOWN")
         else:
-            print("Failed to start.\n"+str(e))
+            print("Failed to start.\n"+str(trace))
 
-    
+main(process_exec)
