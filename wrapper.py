@@ -9,7 +9,7 @@ import traceback
 
 process_exec = "/path/to/executable/here"
 
-class process_control(object):
+class ProcessControl(object):
 
     def __init__(self,process_exec):
         self.proc = None
@@ -82,7 +82,7 @@ def main(process_exec):
     try:
         while True:
             if i==0:
-                child_process = process_control(process_exec)
+                child_process = ProcessControl(process_exec)
                 server = ThreadedTCPServer(child_process, ("0.0.0.0", 16260), ThreadedTCPRequestHandler)
                 ip, port = server.server_address
                 server_thread = threading.Thread(target=server.serve_forever)
@@ -105,3 +105,7 @@ def main(process_exec):
             print("Failed to start.\n"+str(trace))
 
 main(process_exec)
+
+#TODO:
+#config file
+#multiplexing
