@@ -83,6 +83,7 @@ def main(process_exec):
         while True:
             if i==0:
                 child_process = ProcessControl(process_exec)
+                SocketServer.ThreadingTCPServer.allow_reuse_address = True
                 server = ThreadedTCPServer(child_process, ("0.0.0.0", 16260), ThreadedTCPRequestHandler)
                 ip, port = server.server_address
                 server_thread = threading.Thread(target=server.serve_forever)
