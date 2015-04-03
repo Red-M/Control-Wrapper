@@ -71,7 +71,7 @@ class ThreadedTCPRequestHandler(SocketServer.BaseRequestHandler):
         user = protodata[1]
         hpass = protodata[2]
         action = protodata[3]
-        password = hash(self.server.child_process[proc]["password"]+str(time.time())[0:8]+action)
+        password = hash(self.server.child_process[proc]["password"]+str(time.time())[0:9]+action)
         if user == conf["username"] and hpass == password:
             if action=="start":
                 response = "OK"
@@ -159,3 +159,7 @@ def main():
             print("Failed to start.\n"+str(trace))
 
 main()
+
+#TODO:
+#config file
+#multiplexing

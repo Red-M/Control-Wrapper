@@ -18,4 +18,4 @@ def TCP_client(ip, port, message):
         sock.close()
         return data
 
-print(TCP_client("localhost",16260,"1,user,"+hash("password"+str(time.time())[0:8]+"start")+",start"))
+print(TCP_client("localhost",16260,"1,user,"+hash("password"+str(time.time())[0:9]+"start")+",start"))
