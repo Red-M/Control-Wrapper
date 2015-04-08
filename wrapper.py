@@ -34,6 +34,7 @@ class ProcessControl(object):
                 try:
                     while self.proc.wait():
                         #return("DONE")
+                        time.sleep(.1)
                         pass
                 except Exception,e:
                     pass
@@ -144,6 +145,7 @@ def main():
                 server_thread.start()
                 print("Started the process daemon.")
                 i=+1
+            time.sleep(.1)
     except Exception,e:
         type_, value_, traceback_ = sys.exc_info()
         ex = traceback.format_exception(type_, value_, traceback_)
